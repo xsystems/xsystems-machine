@@ -71,6 +71,9 @@ echo "[[ -f ~/.profile ]] && . ~/.profile" >> /home/${USER}/.bash_profile
 
 
 ## Time
+
+To query time from one remote server and synchronizing the local clock to it, run:
+
 ```sh
 timedatectl set-ntp true
 ```
@@ -85,7 +88,8 @@ ufw enable
 
 Setup SSH and SSH Agent:
 
-**key size limit of 4096**
+> _**NOTE:** At the time of writing, GnuPG has a key size limit of 4096 bits_
+
 ```sh
 pacman --quiet --sync --needed --noconfirm openssh
 
@@ -149,8 +153,9 @@ EOF
 ```sh
 pacman --quiet --sync --needed --noconfirm adobe-source-code-pro-fonts \
         arandr \
+        autorandr \
         awesome \
-        compton \
+        picom \
         libva-intel-driver \
         libva-vdpau-driver \
         libvdpau-va-gl \
@@ -159,6 +164,7 @@ pacman --quiet --sync --needed --noconfirm adobe-source-code-pro-fonts \
         nvidia \
         xbindkeys \
         xorg-server \
+        xorg-xdpyinfo \
         xorg-xinit \
         xorg-xrandr \
         xorg-xrdb \
@@ -183,7 +189,7 @@ fi
 if [ -f ~/.xbindkeysrc ] && ! pgrep --euid "${USER}" xbindkeys > /dev/null; then
   xbindkeys
 fi
-compton &
+picom &
 xscreensaver -no-splash &
 screen_layout
 exec awesome
@@ -220,67 +226,8 @@ EOF
 cat << 'EOF' > /home/${USER}/bin/screen_layout
 #!/bin/sh
 
-internal=eDP-1-1
-declare -A monitors
-
-while read monitor; do
-  name=$(cut --delimiter ' ' --fields 1 <<< $monitor)
-
-  data=$(grep --only-matching '[0-9]\+x[0-9]\++[0-9]\++[0-9]\+' <<< $monitor)
-  size=$(cut --delimiter '+' --fields 1 <<< $data)
-
-  width=$(cut --delimiter 'x' --fields 1 <<< $size)
-  height=$(cut --delimiter 'x' --fields 2 <<< $size)
-  x=$(cut --delimiter '+' --fields 2 <<< $data)
-  y=$(cut --delimiter '+' --fields 3 <<< $data)
-
-  monitors["$name"]=$(awk '{$1=$1};1' <<< "$width $height $x $y")
-done <<< $(xrandr | grep ' connected')
-
-xrandr_command="xrandr --output $internal --primary --auto"
-
-isFirstExternal="true"
-
-for name in "${!monitors[@]}"; do
-  echo "$name [${monitors[$name]}]"
-
-  if [ $name = $internal  ]; then
-    continue
-  fi  
-
-  if [ -z "${monitors[$name]}" ] || [ -z "${monitors[$internal]}" ]; then
-    if [ $isFirstExternal = "true"  ]; then
-      xrandr_command="$xrandr_command --output $name --auto --right-of $internal"
-      isFirstExternal="false"
-    else
-      xrandr_command="$xrandr_command --output $name --auto --left-of $internal"
-    fi
-    continue
-  fi
-
-  internal_width=$(cut --delimiter ' ' --fields 1 <<< ${monitors[$internal]})
-  internal_height=$(cut --delimiter ' ' --fields 2 <<< ${monitors[$internal]})
-  internal_x=$(cut --delimiter ' ' --fields 3 <<< ${monitors[$internal]})
-  internal_y=$(cut --delimiter ' ' --fields 4 <<< ${monitors[$internal]})
-
-  external_width=$(cut --delimiter ' ' --fields 1 <<< ${monitors[$name]})
-  external_height=$(cut --delimiter ' ' --fields 2 <<< ${monitors[$name]})
-  external_x=$(cut --delimiter ' ' --fields 3 <<< ${monitors[$name]})
-  external_y=$(cut --delimiter ' ' --fields 4 <<< ${monitors[$name]})
- 
-  if [ $internal_y -ge $(($external_y + $external_height)) ]; then
-    xrandr_command="$xrandr_command --output $name --auto --right-of $internal"
-  elif [ $external_x -ge $(($internal_x + $internal_width)) ]; then
-    xrandr_command="$xrandr_command --output $name --auto --left-of $internal"
-  elif [ $internal_x -ge $(($external_x + $external_width)) ]; then
-    xrandr_command="$xrandr_command --output $name --auto --above $internal"
-  else
-    xrandr_command="$xrandr_command --output $name --auto --right-of $internal"
-  fi  
-done
-
-echo $xrandr_command
-$xrandr_command
+autorandr --change
+~/.fehbg
 EOF
 
 chmod +x /home/${USER}/bin/screen_layout
@@ -290,7 +237,7 @@ Configure Awesome Window Manager:
 ```sh
 mkdir --parents "/home/${USER}/.config/awesome"
 
-cp /etc/xdg/compton.conf "/home/${USER}/.config"
+cp /etc/xdg/picom.conf "/home/${USER}/.config"
 cp /etc/xdg/awesome/rc.lua "/home/${USER}/.config/awesome"
 cp /usr/share/awesome/themes/zenburn/theme.lua "/home/${USER}/.config/awesome"
 
@@ -305,8 +252,17 @@ sed --in-place '/screen = awful.screen.preferred,/a size_hints_honor = false,' "
 sed --in-place '/^theme\.border_width/s/2/0/' "/home/${USER}/.config/awesome/theme.lua"
 sed --in-place '/^theme\.font/s/8/10/' "/home/${USER}/.config/awesome/theme.lua"
 
-echo "opacity-rule = [ \"80:class_g = 'UXTerm'\" ];" >> /home/${USER}/.config/compton.conf
+echo "opacity-rule = [ \"80:class_g = 'UXTerm'\" ];" >> /home/${USER}/.config/picom.conf
 ```
+
+### Manual Configuration
+
+To create a profile for a certain screen layout:
+
+1. Use `arandr` to configure a screen layout.
+2. After replacing `<NAME>` with a suitable name, run:
+
+        autorandr --save <NAME> --skip-options crtc
 
 
 ## Buttons and Power Management
