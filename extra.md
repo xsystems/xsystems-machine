@@ -1,6 +1,6 @@
 # Extra
 
-## HDD shock protection (HP Laptop)
+## HDD shock protection HP Laptop
 ```sh
 pacman --quiet --sync --needed --noconfirm base-devel
 

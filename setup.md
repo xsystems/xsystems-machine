@@ -1,7 +1,7 @@
 # Setup
 
 
-## Read ALL User Input
+## Read User Input
 ```sh
 read -p "Username: " USER
 ```
@@ -309,7 +309,7 @@ echo "opacity-rule = [ \"80:class_g = 'UXTerm'\" ];" >> /home/${USER}/.config/co
 ```
 
 
-## Buttons & Power Management
+## Buttons and Power Management
 
 ```sh
 pacman --quiet --sync --needed --noconfirm acpid tlp hdparm
@@ -381,7 +381,7 @@ chmod +x /etc/acpi/handlers/backlight.sh
 ```
 
 
-## Setup KeePassXC
+## KeePassXC
 ```sh
 pacman --quiet --sync --needed --noconfirm keepassxc
 sed --in-place '/^xscreensaver/a keepassxc &' "/home/${USER}/.xinitrc"

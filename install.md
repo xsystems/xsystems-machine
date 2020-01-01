@@ -194,7 +194,7 @@ swapon /mnt/swapfile
 ```
 
 
-## Install (Arch) Linux
+## Install Arch Linux
 
 ```sh
 pacstrap /mnt base intel-ucode grub efibootmgr
