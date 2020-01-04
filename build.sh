@@ -16,3 +16,4 @@ mkdir target
 
 generate_script install
 generate_script setup
+generate_script extra

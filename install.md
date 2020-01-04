@@ -1,51 +1,4 @@
-# Full Disk Encryption
-
-## TL;DR
-
-1. Download Arch Linux [here][arch_download]
-2. Create an LiveUSB following [these steps][arch_live_usb]
-3. Checkout this repository
-4. Create from this `README.md` file the executable setup script `target/setup.sh` by running `build.sh`
-5. Copy `setup.sh` to the LiveUSB
-6. Boot from the LiveUSB
-7. Run `setup.sh`
-
-## Overview
-
-```
-+----------------------+-----------------------------+-----------------------------+
-| EFI System partition | Boot partition              | System partition            |
-| /boot/efi         (5)| /boot                    (5)| /                        (5)|
-+----------------------+-----------------------------+-----------------------------+
-|                      |                             | LVM: Logical volume 1       |
-|                      |                             | /dev/mapper/system-root  (4)|
-|                      |                             +-----------------------------+
-|                      | LUKS: Encrypted partition   | LUKS: Encrypted partition   |
-|                      | /dev/mapper/crypt-boot   (3)| /dev/mapper/crypt-system (3)|
-|                      +-----------------------------+-----------------------------+
-| Partition: Type 8300 | Partition: Type 8300        | Partition: Type 8E00        |
-| /dev/nvme0n1p1    (2)| /dev/nvme0n1p2           (2)| /dev/nvme0n1p3           (2)|
-+----------------------+-----------------------------+-----------------------------+
-| /dev/nvme0n1                                                                  (1)|
-+----------------------------------------------------------------------------------+
-
-+----------------------------------------------------+
-| Data partition                                     |
-| /media/data-00                                  (5)|
-+----------------------------------------------------+
-| LVM: Logical volume 2                              |
-| /dev/mapper/data-00                             (4)|
-+----------------------------------------------------+
-| LUKS: Encrypted partition                          |
-| /dev/mapper/crypt-data                          (3)|
-+----------------------------------------------------+
-| Partition: Type 8E00                               |
-| /dev/sda1                                       (2)|
-+----------------------------------------------------+
-| /dev/sda                                        (1)|
-+----------------------------------------------------+
-```
-
+# install.sh
 
 ## Verify Prerequisites and Collect User Input
 
@@ -96,7 +49,58 @@ timedatectl set-ntp true
 ```
 
 
-## Prepare System Drive
+## Full System Encryption
+
+### Overview
+
+Subsequent steps result in a fully [encrypted system][arch_system_encryption] and the disk layout will be as follows:
+```
++----------------------+-----------------------------+-----------------------------+
+| EFI System partition | Boot partition              | System partition            |
+| /boot/efi         (5)| /boot                    (5)| /                        (5)|
++----------------------+-----------------------------+-----------------------------+
+|                      |                             | LVM: Logical volume 1       |
+|                      |                             | /dev/mapper/system-root  (4)|
+|                      |                             +-----------------------------+
+|                      | LUKS: Encrypted partition   | LUKS: Encrypted partition   |
+|                      | /dev/mapper/crypt-boot   (3)| /dev/mapper/crypt-system (3)|
+|                      +-----------------------------+-----------------------------+
+| Partition: Type 8300 | Partition: Type 8300        | Partition: Type 8E00        |
+| /dev/nvme0n1p1    (2)| /dev/nvme0n1p2           (2)| /dev/nvme0n1p3           (2)|
++----------------------+-----------------------------+-----------------------------+
+| /dev/nvme0n1                                                                  (1)|
++----------------------------------------------------------------------------------+
+
++----------------------------------------------------+
+| Data partition                                     |
+| /media/data-00                                  (5)|
++----------------------------------------------------+
+| LVM: Logical volume 2                              |
+| /dev/mapper/data-00                             (4)|
++----------------------------------------------------+
+| LUKS: Encrypted partition                          |
+| /dev/mapper/crypt-data                          (3)|
++----------------------------------------------------+
+| Partition: Type 8E00                               |
+| /dev/sda1                                       (2)|
++----------------------------------------------------+
+| /dev/sda                                        (1)|
++----------------------------------------------------+
+```
+
+
+### Generate encryption key file
+
+The below generated key file is used in several subsequent step:
+```sh
+mkdir /keys
+mount --types ramfs ramfs /keys
+
+dd bs=512 count=4 if=/dev/urandom of=/keys/luks.key
+```
+
+
+### Prepare System Drive
 
 Create the partitions:
 ```sh
@@ -107,12 +111,18 @@ sgdisk /dev/nvme0n1 --new=3:0:0
 sgdisk /dev/nvme0n1 --typecode=1:C12A7328-F81F-11D2-BA4B-00A0C93EC93B
 ```
 
-Generate encryption key file:
+Format the EFI System Partition:
 ```sh
-mkdir /keys
-mount --types ramfs ramfs /keys
+mkfs.fat -F32 /dev/nvme0n1p1
+```
 
-dd bs=512 count=4 if=/dev/urandom of=/keys/luks.key
+Encrypt [with LUKS1][arch_boot_encryption] and format the boot partition:
+```sh
+echo -n "${DISK_ENCRYPTION_PASSPHRASE}" | cryptsetup luksFormat --type luks1 /dev/nvme0n1p2 -
+echo -n "${DISK_ENCRYPTION_PASSPHRASE}" | cryptsetup luksAddKey /dev/nvme0n1p2 /keys/luks.key -
+echo -n "${DISK_ENCRYPTION_PASSPHRASE}" | cryptsetup open /dev/nvme0n1p2 crypt-boot -
+
+mkfs.ext4 /dev/mapper/crypt-boot
 ```
 
 Encrypt, setup LVM on, and format the system partition:
@@ -128,22 +138,8 @@ lvcreate --name root --extents 100%FREE system
 mkfs.ext4 /dev/mapper/system-root
 ```
 
-Encrypt and format the boot partition:
-```sh
-echo -n "${DISK_ENCRYPTION_PASSPHRASE}" | cryptsetup luksFormat /dev/nvme0n1p2 -
-echo -n "${DISK_ENCRYPTION_PASSPHRASE}" | cryptsetup luksAddKey /dev/nvme0n1p2 /keys/luks.key -
-echo -n "${DISK_ENCRYPTION_PASSPHRASE}" | cryptsetup open /dev/nvme0n1p2 crypt-boot -
 
-mkfs.ext4 /dev/mapper/crypt-boot
-```
-
-Format the EFI System Partition:
-```sh
-mkfs.fat -F32 /dev/nvme0n1p1
-```
-
-
-## Prepare Data Drive
+### Prepare Data Drive
 
 Create the partition:
 ```sh
@@ -164,7 +160,7 @@ lvcreate --name 00 --extents 100%FREE data
 mkfs.ext4 /dev/mapper/data-00
 ```
 
-## Mount the File Systems And Setup Swap
+### Mount the File Systems And Setup Swap
 
  Mount the File Systems:
 ```sh
@@ -196,16 +192,23 @@ swapon /mnt/swapfile
 
 ## Install Arch Linux
 
+[Install Arch Linux][arch_install]'s `base` package and other required packages:
 ```sh
 pacstrap /mnt base intel-ucode grub efibootmgr
+```
+
+Generate a filesystem table as an `fstab` file:
+```sh
 genfstab -U /mnt >> /mnt/etc/fstab
 sed --in-place "/^\/mnt\/swapfile/s/\/mnt\/swapfile/\/swapfile/" /mnt/etc/fstab
 ```
 
+Run the following commands in a change root environent:
 ```sh
 arch-chroot /mnt /bin/sh <<EOF
 ```
 
+Set the time zone, locale, and hostname:
 ```sh
 ln -sf /usr/share/zoneinfo/Europe/Amsterdam /etc/localtime
 hwclock --systohc
@@ -218,9 +221,9 @@ echo "KEYMAP=us" >> /etc/vconsole.conf
 echo "${HOSTNAME}" > /etc/hostname
 ```
 
+Create and configure an initial ramdisk environment:
 ```sh
-FILES=(/crypto_keyfile.bin)
-sed --in-place "/^FILES/s/=(/=(\/keys\/luks.key /" /etc/mkinitcpio.conf
+sed --in-place "/^FILES/s/=(/=(\/keys\/luks.key/" /etc/mkinitcpio.conf
 sed --in-place "/^HOOKS/{/systemd/!s/base/base systemd/}" /etc/mkinitcpio.conf
 sed --in-place "/^HOOKS/{/keyboard/!s/autodetect/autodetect keyboard/}" /etc/mkinitcpio.conf
 sed --in-place "/^HOOKS/{/sd-vconsole/!s/keyboard/keyboard sd-vconsole/}" /etc/mkinitcpio.conf
@@ -231,6 +234,7 @@ sed --in-place "/^HOOKS/{/resume/!s/sd-lvm2/sd-lvm2 resume/}" /etc/mkinitcpio.co
 mkinitcpio --preset linux
 ```
 
+Configure GRUB, generate the `grub.cfg` file, and install the GRUB EFI application:
 ```sh
 sed --in-place "/^GRUB_CMDLINE_LINUX/s/^/#/" /etc/default/grub
 sed --in-place "/^GRUB_ENABLE_CRYPTODISK/s/^/#/" /etc/default/grub
@@ -246,11 +250,12 @@ grub-mkconfig --output /boot/grub/grub.cfg
 grub-install --recheck --target=x86_64-efi --efi-directory=/boot/efi --bootloader-id=grub 
 ```
 
+Exit the change root environment:
 ```sh
 EOF
 ```
 
-[arch_download]: https://www.archlinux.org/download/ "Arch Linux Download"
-[arch_live_usb]: https://wiki.archlinux.org/index.php/USB_flash_installation_media "Arch Linux USB Flash Installation Media"
+
+[arch_boot_encryption]: https://wiki.archlinux.org/index.php/Dm-crypt/Encrypting_an_entire_system#Encrypted_boot_partition_.28GRUB.29 "Arch Linux Boot Encryption"
+[arch_system_encryption]: https://wiki.archlinux.org/index.php/Dm-crypt/Encrypting_an_entire_system#LVM_on_LUKS "Arch Linux System Encryption"
 [arch_install]: https://wiki.archlinux.org/index.php/installation_guide "Arch Linux Installation Guide"
-[arch_system_encryption]: https://wiki.archlinux.org/index.php/Dm-crypt/Encrypting_an_entire_system#Encrypted_boot_partition_.28GRUB.29 "Arch Linux System Encryption"

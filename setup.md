@@ -1,4 +1,4 @@
-# Setup
+# setup.sh
 
 
 ## Read User Input
@@ -191,7 +191,7 @@ if [ -f ~/.xbindkeysrc ] && ! pgrep --euid "${USER}" xbindkeys > /dev/null; then
 fi
 picom &
 xscreensaver -no-splash &
-screen_layout
+(sleep 2 && screen_layout) &
 exec awesome
 EOF
 ```
