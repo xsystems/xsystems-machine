@@ -6,10 +6,10 @@
 ## TL;DR
 
 1. Download Arch Linux [here][arch_download]
-2. Create an LiveUSB following [these steps][arch_live_usb]
+2. Create a LiveUSB following [these steps][arch_live_usb]
 3. Checkout this repository
-4. Create from the several Markdown files executable scripts, located in `target/`, by running `build.sh`
-5. Copy the scripts to the LiveUSB
+4. Create from the several Markdown files executable scripts by running `build.sh`
+5. Copy the scripts from `target/` to the LiveUSB
 6. Boot from the LiveUSB
 7. Run the script `install.sh`
 8. Reboot **without** the LiveUSB

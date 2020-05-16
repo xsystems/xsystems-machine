@@ -151,20 +151,21 @@ EOF
 
 ## Video
 ```sh
-pacman --quiet --sync --needed --noconfirm adobe-source-code-pro-fonts \
+pacman --quiet --sync --needed --noconfirm \
+        adobe-source-code-pro-fonts \
         arandr \
         autorandr \
         awesome \
-        picom \
-        libva-intel-driver \
-        libva-vdpau-driver \
+        intel-media-driver \
         libvdpau-va-gl \
+        linux-firmware \
         mesa \
-        mesa-vdpau \
-        nvidia \
+        picom \
+        vulkan-icd-loader \
+        vulkan-intel \
         xbindkeys \
+        xf86-video-nouveau \
         xorg-server \
-        xorg-xdpyinfo \
         xorg-xinit \
         xorg-xrandr \
         xorg-xrdb \
@@ -262,7 +263,7 @@ To create a profile for a certain screen layout:
 1. Use `arandr` to configure a screen layout.
 2. After replacing `<NAME>` with a suitable name, run:
 
-        autorandr --save <NAME> --skip-options crtc
+        autorandr --skip-options crtc --save <NAME>
 
 
 ## Buttons and Power Management

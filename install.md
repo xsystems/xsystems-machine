@@ -221,7 +221,7 @@ echo "KEYMAP=us" >> /etc/vconsole.conf
 echo "${HOSTNAME}" > /etc/hostname
 ```
 
-Create and configure an initial ramdisk environment:
+Configure and create an initial ramdisk environment:
 ```sh
 sed --in-place "/^FILES/s/=(/=(\/keys\/luks.key/" /etc/mkinitcpio.conf
 sed --in-place "/^HOOKS/{/systemd/!s/base/base systemd/}" /etc/mkinitcpio.conf
