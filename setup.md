@@ -151,14 +151,13 @@ EOF
 
 ## Video
 ```sh
-pacman --quiet --sync --needed --noconfirm \
+pacman  --quiet --sync --needed --noconfirm \
         adobe-source-code-pro-fonts \
         arandr \
         autorandr \
         awesome \
         intel-media-driver \
         libvdpau-va-gl \
-        linux-firmware \
         mesa \
         picom \
         vulkan-icd-loader \
@@ -192,7 +191,7 @@ if [ -f ~/.xbindkeysrc ] && ! pgrep --euid "${USER}" xbindkeys > /dev/null; then
 fi
 picom &
 xscreensaver -no-splash &
-(sleep 2 && screen_layout) &
+screen_layout &
 exec awesome
 EOF
 ```

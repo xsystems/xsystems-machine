@@ -192,9 +192,16 @@ swapon /mnt/swapfile
 
 ## Install Arch Linux
 
-[Install Arch Linux][arch_install]'s `base` package and other required packages:
+[Install Arch Linux][arch_install]'s `base` package, Linux kernel, firmware for common hardware, and other required packages:
 ```sh
-pacstrap /mnt base intel-ucode grub efibootmgr
+pacstrap  /mnt \
+          base \
+          efibootmgr \
+          grub \
+          intel-ucode \
+          linux \
+          linux-lts \
+          linux-firmware
 ```
 
 Generate a filesystem table as an `fstab` file:
@@ -231,13 +238,15 @@ sed --in-place "/^HOOKS/{/sd-encrypt/!s/block/block sd-encrypt/}" /etc/mkinitcpi
 sed --in-place "/^HOOKS/{/sd-lvm2/!s/sd-encrypt/sd-encrypt sd-lvm2/}" /etc/mkinitcpio.conf
 sed --in-place "/^HOOKS/{/resume/!s/sd-lvm2/sd-lvm2 resume/}" /etc/mkinitcpio.conf
 
-mkinitcpio --preset linux
+mkinitcpio --allpresets
 ```
 
 Configure GRUB, generate the `grub.cfg` file, and install the GRUB EFI application:
 ```sh
 sed --in-place "/^GRUB_CMDLINE_LINUX/s/^/#/" /etc/default/grub
 sed --in-place "/^GRUB_ENABLE_CRYPTODISK/s/^/#/" /etc/default/grub
+sed --in-place "/^GRUB_DEFAULT/s/^/#/" /etc/default/grub
+sed --in-place "/^GRUB_SAVEDEFAULT/s/^/#/" /etc/default/grub
 echo "GRUB_CMDLINE_LINUX=\"rd.luks.name=$(blkid --match-tag UUID --output value /dev/nvme0n1p3)=crypt-system \
                            rd.luks.name=$(blkid --match-tag UUID --output value /dev/nvme0n1p2)=crypt-boot \
                            rd.luks.name=$(blkid --match-tag UUID --output value /dev/sda1)=crypt-data \
@@ -245,6 +254,8 @@ echo "GRUB_CMDLINE_LINUX=\"rd.luks.name=$(blkid --match-tag UUID --output value 
                            resume=/dev/mapper/system-root \
                            resume_offset=$(filefrag -v /mnt/swapfile | awk '{if($1=="0:"){print $4}}' | sed '/\.\./s/\.\.//')\"" >> /etc/default/grub
 echo "GRUB_ENABLE_CRYPTODISK=y" >> /etc/default/grub
+echo "GRUB_DEFAULT=saved" >> /etc/default/grub
+echo "GRUB_SAVEDEFAULT=true" >> /etc/default/grub
 
 grub-mkconfig --output /boot/grub/grub.cfg
 grub-install --recheck --target=x86_64-efi --efi-directory=/boot/efi --bootloader-id=grub 
