@@ -267,23 +267,15 @@ To create a profile for a certain screen layout:
 
 ## Buttons and Power Management
 
+Setup power management:
 ```sh
 pacman --quiet --sync --needed --noconfirm acpid tlp hdparm
 
 systemctl enable acpid
 systemctl start acpid
-```
 
-Enable and configure power management:
-```sh
-sed --in-place '/^DISK_IDLE_SECS_ON_\(AC\|BAT\)/s/=.*/=5/' /etc/default/tlp
-sed --in-place '/^DISK_APM_LEVEL_ON_\(AC\|BAT\)/s/".*"/"64 64"/' /etc/default/tlp
-cp /usr/lib/systemd/system/tlp.service /usr/lib/systemd/system/tlp-no-network-manager.service
-sed --in-place 's/NetworkManager\.service//g' /usr/lib/systemd/system/tlp-no-network-manager.service
-
-systemctl enable tlp-no-network-manager.service
-systemctl enable tlp-sleep
-systemctl mask systemd-rfkill
+systemctl enable tlp
+systemctl start tlp
 ```
 
 Handle volume and mute buttons:
