@@ -9,26 +9,8 @@ read -p "Username: " USER
 
 ## Network
 
-Enable wired network connectivity:
-```sh
-systemctl enable dhcpcd
-systemctl start dhcpcd
-```
-
 Verify that there is an internet connection:
 ```sh
-dhcpcd_wait_time=10
-while ! systemctl is-active dhcpcd; do
-  if [ $dhcpcd_wait_time -gt 0 ]; then
-    dhcpcd_wait_time=$(($dhcpcd_wait_time - 1))
-    sleep 1
-  else
-    echo "[FAILED] The DHCPCD service has started"
-    exit 1
-  fi
-done
-echo "[  OK  ] The DHCPCD service has started"
-
 if ping -c 4 google.com 2>&1 >/dev/null; then
   echo "[  OK  ] There is internet connection"
 else
@@ -39,7 +21,7 @@ fi
 
 Install tools facilitating wireless network connectivity:
 ```sh
-pacman --quiet --sync --needed --noconfirm iw wpa_actiond
+pacman --quiet --sync --needed --noconfirm iwd
 ```
 
 
