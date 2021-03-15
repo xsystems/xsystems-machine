@@ -25,33 +25,6 @@ pacman --quiet --sync --needed --noconfirm iwd
 ```
 
 
-## Create User Account
-```sh
-pacman --quiet --sync --needed --noconfirm sudo
-
-useradd --create-home --gid users "${USER}"
-
-gpasswd --add "${USER}" wheel
-sed --in-place '/^# %wheel ALL=(ALL) ALL/s/# //' /etc/sudoers
-
-mkdir -p /home/${USER}/bin
-
-cat << 'EOF' > /home/${USER}/.profile
-#!/bin/sh
-
-if [ -f ~/.environment ]; then
-  . ~/.environment
-fi
-
-if [ -d "$HOME/bin" ]; then
-  PATH="${HOME}/bin:${PATH}"
-fi
-EOF
-
-echo "[[ -f ~/.profile ]] && . ~/.profile" >> /home/${USER}/.bash_profile
-```
-
-
 ## Time
 
 To query time from one remote server and synchronizing the local clock to it, run:

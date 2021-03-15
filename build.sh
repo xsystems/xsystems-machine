@@ -12,10 +12,15 @@ function generate_script {
 }
 
 rm --recursive --force target
-mkdir target
+mkdir --parents target/utils
 
 generate_script install
 generate_script setup
 generate_script extra
 generate_script disk-add
-generate_script utils
+
+generate_script utils/cpu
+generate_script utils/disk
+generate_script utils/misc
+generate_script utils/swap
+generate_script utils/user

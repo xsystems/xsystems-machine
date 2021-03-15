@@ -8,13 +8,17 @@
 BASEDIR=$(dirname "$0")
 ```
 
-### Import [several utility function](./utils.md)
+### Import util functions for [cpu](utils/cpu.md), [disk](utils/disk.md), [misc](utils/misc.md), [swap](utils/swap.md), and [user](utils/user.md):
 ```sh
-. "${BASEDIR}/utils.sh"
+. "${BASEDIR}/utils/cpu.sh"
+. "${BASEDIR}/utils/disk.sh"
+. "${BASEDIR}/utils/misc.sh"
+. "${BASEDIR}/utils/swap.sh"
+. "${BASEDIR}/utils/user.sh"
 ```
 
 
-## Verify Prerequisites and Collect User Input
+## Verify AND set prerequisites
 
 Verify that UEFI boot mode is enabled:
 ```sh
@@ -43,18 +47,13 @@ if [ "${HAS_UNMET_PREREQUISITE}" = true ]; then
 fi
 ```
 
-Query the user for the `hostname`:
-```sh
-read -p "Hostname: " HOSTNAME
-```
-
 Update the system clock:
 ```sh
 timedatectl set-ntp true
 ```
 
 
-## Full System Encryption
+## Install encrypted system (except EFI partition)
 
 ### Overview
 
@@ -82,19 +81,29 @@ The disk layout will be similar to the following:
 
 
 ### Collect user input AND set variables
-Select a disk:
+Query the username:
+```sh
+read -p "Username: " USERNAME
+```
+
+Query a passphrase for the user:
+```sh 
+USER_PASSPHRASE=`passphrase "User passphrase"`
+```
+
+Query the hostname:
+```sh
+read -p "Hostname: " HOSTNAME
+```
+
+Query the "installation" disk:
 ```sh
 DISK_PATH=`disk_select`
 ```
 
-Provide a disk passphrase:
+Query a disk passphrase:
 ```sh 
-DISK_PASSPHRASE=`passphrase "Disk Encryption Passphrase"`
-```
-
-Provide a root passphrase:
-```sh 
-ROOT_PASSPHRASE=`passphrase "Root Passphrase"`
+DISK_PASSPHRASE=`passphrase "Disk encryption passphrase"`
 ```
 
 Set variable:
@@ -170,7 +179,13 @@ fallocate --length "`swap_size`G" /mnt/swapfile
 chmod 600 /mnt/swapfile
 mkswap /mnt/swapfile
 swapon /mnt/swapfile
+```
+
+
+### Make some information available for use later on
+```sh
 SWAP_FILE_OFFSET=`swap_file_offset /mnt/swapfile`
+DISK_PARTITION_SYSTEM_UUID=`disk_uuid ${DISK_PARTITION_SYSTEM}`
 ```
 
 
@@ -207,6 +222,11 @@ Run the following commands in a change root environent:
 arch-chroot /mnt /bin/sh <<EOCHROOT
 ```
 
+Make some functions available in the change root environment:
+```sh
+`type user_create | sed '1d'`
+```
+
 Set the time zone, locale, and hostname:
 ```sh
 ln --symbolic --force /usr/share/zoneinfo/Europe/Amsterdam /etc/localtime
@@ -226,9 +246,9 @@ systemctl enable systemd-networkd
 systemctl enable systemd-resolved
 ```
 
-Set the root passphrase:
+Create the user:
 ```sh
-echo "root:${ROOT_PASSPHRASE}" | chpasswd
+user_create "${USERNAME}" "${USER_PASSPHRASE}"
 ```
 
 Configure and create an initial ramdisk environment:
@@ -254,7 +274,7 @@ GRUB_DISTRIBUTOR="Arch"
 GRUB_ENABLE_CRYPTODISK=y
 GRUB_DISABLE_RECOVERY=true
 GRUB_CMDLINE_LINUX_DEFAULT="loglevel=3 quiet"
-GRUB_CMDLINE_LINUX="rd.luks.name=`disk_uuid ${DISK_PARTITION_SYSTEM}`=crypt-system rd.luks.key=/keys/luks.key resume=/dev/mapper/system-root resume_offset=${SWAP_FILE_OFFSET}"
+GRUB_CMDLINE_LINUX="rd.luks.name=${DISK_PARTITION_SYSTEM_UUID}=crypt-system rd.luks.key=/keys/luks.key resume=/dev/mapper/system-root resume_offset=${SWAP_FILE_OFFSET}"
 EOF
 
 grub-install --recheck --target=x86_64-efi --efi-directory=/efi --bootloader-id=GRUB
