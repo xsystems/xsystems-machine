@@ -15,7 +15,8 @@ rm --recursive --force target
 mkdir --parents target/utils
 
 generate_script install
-generate_script setup
+generate_script setup-base
+generate_script setup-laptop
 generate_script extra
 generate_script disk-add
 

@@ -1,4 +1,4 @@
-# setup.sh
+# setup-laptop.sh
 
 
 ## Read User Input
@@ -7,100 +7,11 @@ read -p "Username: " USER
 ```
 
 
-## Network
-
-Verify that there is an internet connection:
-```sh
-if ping -c 4 google.com 2>&1 >/dev/null; then
-  echo "[  OK  ] There is internet connection"
-else
-  echo "[FAILED] There is internet connection"
-  exit 1
-fi
-```
-
-Install tools facilitating wireless network connectivity:
-```sh
-pacman --quiet --sync --needed --noconfirm iwd
-```
-
-
-## Time
-
-To query time from one remote server and synchronizing the local clock to it, run:
-
-```sh
-timedatectl set-ntp true
-```
-
-
 ## Security
 Setup a firewall:
 ```sh
 pacman --quiet --sync --needed --noconfirm ufw
 ufw enable
-```
-
-Setup SSH and SSH Agent:
-
-> _**NOTE:** At the time of writing, GnuPG has a key size limit of 4096 bits_
-
-```sh
-pacman --quiet --sync --needed --noconfirm openssh
-
-cat << 'EOF' > /home/${USER}/.pam_environment
-SSH_AGENT_PID  DEFAULT=
-SSH_AUTH_SOCK  DEFAULT="${XDG_RUNTIME_DIR}/gnupg/S.gpg-agent.ssh"
-EOF
-
-cat << 'EOF' > /home/${USER}/.bashrc
-export GPG_TTY=$(tty)
-gpg-connect-agent updatestartuptty /bye >/dev/null
-EOF
-```
-
-
-## Storage
-Setup automounting:
-```sh
-pacman --quiet --sync --needed --noconfirm udiskie
-
-cat << 'EOF' >> /home/${USER}/.profile
-if ! pgrep --euid "${USER}" udiskie > /dev/null; then
-  udiskie &
-fi
-EOF
-```
-
-
-## Audio
-```sh
-pacman --quiet --sync --needed --noconfirm pulseaudio pulseaudio-alsa pavucontrol
-
-mkdir --parents /home/${USER}/.config/pulse
-cat << 'EOF' > /home/${USER}/.config/pulse/default.pa
-.include /etc/pulse/default.pa
-
-### Automatically switch to newly connected devices
-load-module module-switch-on-connect
-EOF
-```
-
-
-## Bluetooth
-```sh
-pacman --quiet --sync --needed --noconfirm bluez bluez-utils pulseaudio-bluetooth
-
-systemctl enable bluetooth
-systemctl start bluetooth
-
-gpasswd --add "${USER}" lp
-
-sed --in-place '/#AutoEnable=false/s/#AutoEnable=false/AutoEnable=true/' /etc/bluetooth/main.conf
-cat << 'EOF' > /etc/bluetooth/audio.conf
-[General]
-Enable=Source
-EOF
 ```
 
 
@@ -296,4 +207,3 @@ sed --in-place '/^xscreensaver/a keepassxc &' "/home/${USER}/.xinitrc"
 ```sh
 chown --recursive "${USER}:users" "/home/${USER}"
 ```
-
