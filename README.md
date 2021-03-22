@@ -1,6 +1,6 @@
-# xSystems Laptop
+# xSystems Machine
 
-> Comprehensive (opinionated) guide to setup a laptop
+> Comprehensive (opinionated) guide to setup an Arch machine
 
 
 ## TL;DR
@@ -18,30 +18,16 @@
 
 ## Contents
 
-- [install.sh](install.md)
-  * [Verify Prerequisites and Collect User Input](install.md#verify-prerequisites-and-collect-user-input)
-  * [Full System Encryption](install.md#full-system-encryption)
-    + [Overview](install.md#overview)
-    + [Generate encryption key file](install.md#generate-encryption-key-file)
-    + [Prepare System Drive](install.md#prepare-system-drive)
-    + [Prepare Data Drive](install.md#prepare-data-drive)
-    + [Mount the File Systems And Setup Swap](install.md#mount-the-file-systems-and-setup-swap)
-  * [Install Arch Linux](install.md#install-arch-linux)
-- [setup.sh](setup.md)
-  * [Read User Input](setup.md#read-user-input)
-  * [Network](setup.md#network)
-  * [Create User Account](setup.md#create-user-account)
-  * [Time](setup.md#time)
-  * [Security](setup.md#security)
-  * [Storage](setup.md#storage)
-  * [Audio](setup.md#audio)
-  * [Bluetooth](setup.md#bluetooth)
-  * [Video](setup.md#video)
-  * [Buttons and Power Management](setup.md#buttons-and-power-management)
-  * [KeePassXC](setup.md#keepassxc)
-  * [Change User Home Owner and Group](setup.md#change-user-home-owner-and-group)
-- [extra.sh](extra.md)
-  * [HDD shock protection HP Laptop](setup.md#hdd-shock-protection-hp-laptop)
+- [disk-add.sh](disk-add.md) - Add a fully encrypted disk to the system
+- [install.sh](install.md) - Install Arch on an encrypted disk
+- [setup-base.sh](setup-base.md) - Base post-install configuration
+- [setup-laptop.sh](setup-laptop.md) - Laptop oriented post-install configuration (Optional)
+- utils - Functions that group steps that belong together and abstract away complexities
+  * [cpu.sh](utils/cpu.md)
+  * [disk.sh](utils/disk.md)
+  * [misc.sh](utils/misc.md)
+  * [swap.sh](utils/swap.md)
+  * [user.sh](utils/user.md)
 
 
 [arch_download]: https://www.archlinux.org/download/ "Arch Linux Download"
