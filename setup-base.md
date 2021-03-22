@@ -45,13 +45,6 @@ user_configure_ssh "${USERNAME}"
 ```
 
 
-## Storage
-Setup automounting:
-```sh
-user_configure_automounting "${USERNAME}"
-```
-
-
 ## Audio
 ```sh
 user_configure_audio "${USERNAME}"

@@ -225,6 +225,7 @@ arch-chroot /mnt /bin/sh <<EOCHROOT
 Make some functions available in the change root environment:
 ```sh
 `type user_create | sed '1d'`
+`type user_configure_automounting | sed '1d'`
 ```
 
 Set the time zone, locale, and hostname:
@@ -249,6 +250,11 @@ systemctl enable systemd-resolved
 Create the user:
 ```sh
 user_create "${USERNAME}" "${USER_PASSPHRASE}"
+```
+
+Setup automounting:
+```sh
+user_configure_automounting "${USERNAME}"
 ```
 
 Configure and create an initial ramdisk environment:

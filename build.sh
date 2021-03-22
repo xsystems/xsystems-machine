@@ -14,11 +14,10 @@ function generate_script {
 rm --recursive --force target
 mkdir --parents target/utils
 
+generate_script disk-add
 generate_script install
 generate_script setup-base
 generate_script setup-laptop
-generate_script extra
-generate_script disk-add
 
 generate_script utils/cpu
 generate_script utils/disk

@@ -67,7 +67,7 @@ user_configure_ssh() {
 
     cat <<- EOF > /home/${USERNAME}/.bashrc
 	export GPG_TTY=$(tty)
-	gpg-connect-agent updatestartuptty /bye >/dev/null
+	gpg-connect-agent updatestartuptty /bye > /dev/null
 	EOF
 }
 ```
