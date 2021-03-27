@@ -57,6 +57,7 @@ user_configure_ssh() {
     fi
 
     local USERNAME="$1"
+    local AUTHORIZED_KEY="$2"
 
     pacman --quiet --sync --needed --noconfirm openssh
 
@@ -69,6 +70,14 @@ user_configure_ssh() {
 	export GPG_TTY=$(tty)
 	gpg-connect-agent updatestartuptty /bye > /dev/null
 	EOF
+
+    if [ -f "${AUTHORIZED_KEY}" ] ; then
+        mkdir /home/${USERNAME}/.ssh
+        cat "${AUTHORIZED_KEY}" > /home/${USERNAME}/.ssh/authorized_keys
+    fi
+
+    systemctl enable sshd
+    systemctl start sshd
 }
 ```
 

@@ -41,7 +41,7 @@ timedatectl set-ntp true
 
 Setup SSH and SSH Agent:
 ```sh
-user_configure_ssh "${USERNAME}"
+user_configure_ssh "${USERNAME}" "${BASEDIR}/ssh_key.pub"
 ```
 
 
