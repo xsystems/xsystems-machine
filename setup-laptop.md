@@ -18,18 +18,16 @@ ufw enable
 ## Video
 ```sh
 pacman  --quiet --sync --needed --noconfirm \
-        adobe-source-code-pro-fonts \
         arandr \
         autorandr \
-        awesome \
         intel-media-driver \
-        libvdpau-va-gl \
+        maim \
         mesa \
-        picom \
+        noto-fonts \
         vulkan-icd-loader \
         vulkan-intel \
         xbindkeys \
-        xf86-video-nouveau \
+        xclip \
         xorg-server \
         xorg-xinit \
         xorg-xrandr \
@@ -55,18 +53,22 @@ fi
 if [ -f ~/.xbindkeysrc ] && ! pgrep --euid "${USER}" xbindkeys > /dev/null; then
   xbindkeys
 fi
-picom &
 xscreensaver -no-splash &
 screen_layout &
-exec awesome
+exec i3
 EOF
 ```
 
 ```sh
 cat << 'EOF' > /home/${USER}/.Xresources
-*VT100*foreground: gray90
-*VT100*background: black
-*VT100*faceName: Source Code Pro:size=12:antialias=true
+*vt100.foreground: gray90
+*vt100.background: black
+*vt100.faceName: xft:Noto Sans Mono:size=14:antialias=true
+
+URxvt.foreground: gray90
+URxvt.background: black
+URxvt.font: xft:Noto Sans Mono:size=14:antialias=true
+URxvt.scrollBar: false
 EOF
 ```
 
@@ -85,6 +87,10 @@ cat << 'EOF' > /home/${USER}/.xbindkeysrc
 "xscreensaver-command --lock"
     m:0x50 + c:67
     Mod2+Mod4 + F1
+
+"maim --select  | xclip -selection clipboard -t image/png"
+    m:0x0 + c:107
+    Print
 EOF
 ```
 
@@ -97,28 +103,6 @@ autorandr --change
 EOF
 
 chmod +x /home/${USER}/bin/screen_layout
-```
-
-Configure Awesome Window Manager:
-```sh
-mkdir --parents "/home/${USER}/.config/awesome"
-
-cp /etc/xdg/picom.conf "/home/${USER}/.config"
-cp /etc/xdg/awesome/rc.lua "/home/${USER}/.config/awesome"
-cp /usr/share/awesome/themes/zenburn/theme.lua "/home/${USER}/.config/awesome"
-
-sed --in-place 's/awful\.layout\.layouts\[.*\]/awful\.layout\.layouts\[3]/' "/home/${USER}/.config/awesome/rc.lua"
-sed --in-place '/^terminal/s/xterm/uxterm/' "/home/${USER}/.config/awesome/rc.lua"
-sed --in-place '/^beautiful.init/s/get_themes_dir/get_xdg_config_home/' "/home/${USER}/.config/awesome/rc.lua"
-sed --in-place '/^beautiful.init/s/default/awesome/' "/home/${USER}/.config/awesome/rc.lua"
-sed --in-place '/titlebars_enabled =/s/true/false/' "/home/${USER}/.config/awesome/rc.lua"
-sed --in-place '/"p"/s/modkey/modkey, "Control"/' "/home/${USER}/.config/awesome/rc.lua"
-sed --in-place '/screen = awful.screen.preferred,/a size_hints_honor = false,' "/home/${USER}/.config/awesome/rc.lua"
-
-sed --in-place '/^theme\.border_width/s/2/0/' "/home/${USER}/.config/awesome/theme.lua"
-sed --in-place '/^theme\.font/s/8/10/' "/home/${USER}/.config/awesome/theme.lua"
-
-echo "opacity-rule = [ \"80:class_g = 'UXTerm'\" ];" >> /home/${USER}/.config/picom.conf
 ```
 
 ### Manual Configuration
@@ -135,7 +119,7 @@ To create a profile for a certain screen layout:
 
 Setup power management:
 ```sh
-pacman --quiet --sync --needed --noconfirm acpid tlp hdparm
+pacman --quiet --sync --needed --noconfirm acpid tlp
 
 systemctl enable acpid
 systemctl start acpid

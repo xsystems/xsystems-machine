@@ -25,7 +25,7 @@ user_create() {
     echo "${USERNAME}:${PASSPHRASE}" | chpasswd
 
     gpasswd --add "${USERNAME}" wheel
-    sed --in-place '/^# %wheel ALL=(ALL) ALL/s/# //' /etc/sudoers
+    sed --in-place '/^# %wheel ALL=(ALL:ALL) ALL/s/# //' /etc/sudoers
 
     mkdir -p "/home/${USERNAME}/bin"
 
@@ -95,7 +95,7 @@ user_configure_automounting() {
 
     cat <<- EOF >> /home/${USERNAME}/.profile
 	if ! pgrep --euid "${USERNAME}" udiskie > /dev/null; then
-	    udiskie --no-automount --tray &
+	    udiskie &
 	fi
 	EOF
 }
