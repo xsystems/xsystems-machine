@@ -41,6 +41,7 @@ user_create() {
 	fi
 	EOF
 
+    echo "[[ -f ~/.bashrc  ]] && . ~/.bashrc"  >> "/home/${USERNAME}/.bash_profile"
     echo "[[ -f ~/.profile ]] && . ~/.profile" >> "/home/${USERNAME}/.bash_profile"
 }
 ```
