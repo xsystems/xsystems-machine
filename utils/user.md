@@ -2,6 +2,43 @@
 
 ## User Utils
 
+### Create directory or file owned by given user
+```sh
+user_create_directory() {
+    if [ -z "$1" ] ; then
+        echo "Argument 1 missing i.e. the USERNAME"
+        return 1
+    fi
+
+    if [ -z "$2" ] ; then
+        echo "Argument 2 missing i.e. the DIRECTORY"
+        return 1
+    fi
+
+    local USERNAME="$1"
+    local DIRECTORY="$2"
+
+    install --owner "${USERNAME}" --group "users" --directory "${DIRECTORY}"
+}
+
+user_create_file() {
+    if [ -z "$1" ] ; then
+        echo "Argument 1 missing i.e. the USERNAME"
+        return 1
+    fi
+
+    if [ -z "$2" ] ; then
+        echo "Argument 2 missing i.e. the FILE"
+        return 1
+    fi
+
+    local USERNAME="$1"
+    local FILE="$2"
+
+    install --owner "${USERNAME}" --group "users" /dev/null "${FILE}"
+}
+```
+
 ### Create an user account:
 ```sh
 user_create() {
@@ -27,21 +64,21 @@ user_create() {
     gpasswd --add "${USERNAME}" wheel
     sed --in-place '/^# %wheel ALL=(ALL:ALL) ALL/s/# //' /etc/sudoers
 
-    mkdir -p "/home/${USERNAME}/bin"
+    user_create_directory   "${USERNAME}" "/home/${USERNAME}/bin"
+    user_create_file        "${USERNAME}" "/home/${USERNAME}/.profile"
 
-    cat <<- EOF > "/home/${USERNAME}/.profile"
+    cat <<- EOF >> "/home/${USERNAME}/.profile"
 	#!/bin/sh
 
 	if [ -f ~/.environment ]; then
 	    . ~/.environment
 	fi
 
-	if [ -d "$HOME/bin" ]; then
-	    PATH="${HOME}/bin:${PATH}"
+	if [ -d "\${HOME}/bin" ]; then
+	    PATH="\${HOME}/bin:${PATH}"
 	fi
 	EOF
 
-    echo "[[ -f ~/.bashrc  ]] && . ~/.bashrc"  >> "/home/${USERNAME}/.bash_profile"
     echo "[[ -f ~/.profile ]] && . ~/.profile" >> "/home/${USERNAME}/.bash_profile"
 }
 ```
@@ -62,19 +99,22 @@ user_configure_ssh() {
 
     pacman --quiet --sync --needed --noconfirm openssh
 
-    cat <<- EOF > /home/${USERNAME}/.pam_environment
+    user_create_file "${USERNAME}" "/home/${USERNAME}/.pam_environment"
+    cat <<- EOF >> /home/${USERNAME}/.pam_environment
 	SSH_AGENT_PID  DEFAULT=
 	SSH_AUTH_SOCK  DEFAULT="${XDG_RUNTIME_DIR}/gnupg/S.gpg-agent.ssh"
 	EOF
 
-    cat <<- EOF > /home/${USERNAME}/.bashrc
+    user_create_file "${USERNAME}"  "/home/${USERNAME}/.bashrc"
+    cat <<- EOF >> /home/${USERNAME}/.bashrc
 	export GPG_TTY=$(tty)
 	gpg-connect-agent updatestartuptty /bye > /dev/null
 	EOF
 
     if [ -f "${AUTHORIZED_KEY}" ] ; then
-        mkdir /home/${USERNAME}/.ssh
-        cat "${AUTHORIZED_KEY}" > /home/${USERNAME}/.ssh/authorized_keys
+        user_create_directory   "${USERNAME}"  "/home/${USERNAME}/.ssh"
+        user_create_file        "${USERNAME}"  "/home/${USERNAME}/.ssh/authorized_keys"
+        cat "${AUTHORIZED_KEY}" >> /home/${USERNAME}/.ssh/authorized_keys
     fi
 
     systemctl enable sshd
@@ -95,8 +135,9 @@ user_configure_automounting() {
     pacman --quiet --sync --needed --noconfirm udiskie
 
     cat <<- EOF >> /home/${USERNAME}/.profile
-	if ! pgrep --euid "${USERNAME}" udiskie > /dev/null; then
-	    udiskie &
+
+	if ! pgrep --euid "\${USER}" udiskie > /dev/null; then
+	    udiskie --smart-tray --no-file-manager --no-notify &
 	fi
 	EOF
 }
@@ -114,8 +155,9 @@ user_configure_audio() {
 
     pacman --quiet --sync --needed --noconfirm pulseaudio pulseaudio-alsa pulsemixer
 
-    mkdir --parents /home/${USERNAME}/.config/pulse
-    cat <<- EOF > /home/${USERNAME}/.config/pulse/default.pa
+    user_create_directory   "${USERNAME}" "/home/${USERNAME}/.config/pulse"
+    user_create_file        "${USERNAME}" "/home/${USERNAME}/.config/pulse/default.pa"
+    cat <<- EOF >> /home/${USERNAME}/.config/pulse/default.pa
 	.include /etc/pulse/default.pa
 	
 	### Automatically switch to newly connected devices

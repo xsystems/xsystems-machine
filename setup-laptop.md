@@ -20,10 +20,16 @@ ufw enable
 pacman  --quiet --sync --needed --noconfirm \
         arandr \
         autorandr \
+        dmenu \
+        dunst \
+        feh \
+        i3-wm \
+        i3status \
         intel-media-driver \
         maim \
         mesa \
         noto-fonts \
+        rxvt-unicode \
         vulkan-icd-loader \
         vulkan-intel \
         xbindkeys \
@@ -32,8 +38,7 @@ pacman  --quiet --sync --needed --noconfirm \
         xorg-xinit \
         xorg-xrandr \
         xorg-xrdb \
-        xscreensaver \
-        xterm
+        xscreensaver
 ```
 
 ```sh
@@ -55,6 +60,7 @@ if [ -f ~/.xbindkeysrc ] && ! pgrep --euid "${USER}" xbindkeys > /dev/null; then
 fi
 xscreensaver -no-splash &
 screen_layout &
+dunst &
 exec i3
 EOF
 ```
@@ -99,7 +105,10 @@ cat << 'EOF' > /home/${USER}/bin/screen_layout
 #!/bin/sh
 
 autorandr --change
-~/.fehbg
+
+if [ -f ~/.fehbg ]; then
+    . ~/.fehbg
+fi
 EOF
 
 chmod +x /home/${USER}/bin/screen_layout

@@ -214,7 +214,8 @@ sed --in-place "/^\/mnt\/swapfile/s/\/mnt\/swapfile/\/swapfile/" /mnt/etc/fstab
 Configure networking:
 ```sh
 cp /etc/systemd/network/20-ethernet.network /mnt/etc/systemd/network/
-cp /etc/systemd/network/20-wireless.network /mnt/etc/systemd/network/
+cp /etc/systemd/network/20-wlan.network     /mnt/etc/systemd/network/
+cp /etc/systemd/network/20-wwan.network     /mnt/etc/systemd/network/
 ```
 
 Run the following commands in a change root environent:
@@ -263,7 +264,7 @@ mv /etc/mkinitcpio.conf /etc/mkinitcpio.conf.default
 
 cat << EOF > /etc/mkinitcpio.conf
 FILES=(/keys/luks.key)
-HOOKS=(base systemd autodetect keyboard sd-vconsole modconf block sd-encrypt lvm2 resume filesystems fsck)
+HOOKS=(base systemd keyboard autodetect sd-vconsole modconf block sd-encrypt lvm2 filesystems fsck)
 EOF
 
 mkinitcpio --allpresets
@@ -274,8 +275,8 @@ Configure GRUB, install the GRUB EFI application, and generate the `grub.cfg` fi
 mv /etc/default/grub /etc/default/grub.default
 
 cat << EOF > /etc/default/grub
-GRUB_DEFAULT=saved
-GRUB_SAVEDEFAULT=true
+#GRUB_DEFAULT=saved
+#GRUB_SAVEDEFAULT=true
 GRUB_DISTRIBUTOR="Arch"
 GRUB_ENABLE_CRYPTODISK=y
 GRUB_DISABLE_RECOVERY=true

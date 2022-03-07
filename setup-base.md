@@ -25,6 +25,8 @@ read -p "Username: " USERNAME
 Install tools facilitating wireless network connectivity:
 ```sh
 pacman --quiet --sync --needed --noconfirm iwd
+systemctl enable iwd
+systemctl start  iwd
 ```
 
 
@@ -54,10 +56,4 @@ user_configure_audio "${USERNAME}"
 ## Bluetooth
 ```sh
 user_configure_bluetooth "${USERNAME}"
-```
-
-## Change User Home Owner and Group
-
-```sh
-chown --recursive "${USERNAME}:users" "/home/${USERNAME}"
 ```

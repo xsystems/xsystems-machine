@@ -9,8 +9,10 @@
 2. Create a LiveUSB following [these steps][arch_live_usb]
 3. Checkout this repository
 4. Create from the several Markdown files executable scripts by running `build.sh`
-5. Copy the scripts from `target/` to the LiveUSB
+5. Copy the scripts from `target/` to an other (USB) device
+    > _**NOTE:** Following the above steps the LiveUSB will be read-only_
 6. Boot from the LiveUSB
+    > _**NOTE:** At the time of writing Secure Boot needs to be disabled to boot the LiveUSB, after the installation it can be enabled again_
 7. Run the script `install.sh`
 8. Reboot **without** the LiveUSB
 9. Run the other scripts
