@@ -18,6 +18,7 @@ generate_script disk-add
 generate_script install
 generate_script setup-base
 generate_script setup-laptop
+generate_script setup-dell-latitude-5520
 
 generate_script utils/cpu
 generate_script utils/disk
