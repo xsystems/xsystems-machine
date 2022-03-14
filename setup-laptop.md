@@ -29,6 +29,7 @@ pacman  --quiet --sync --needed --noconfirm \
         maim \
         mesa \
         noto-fonts \
+        picom \
         rxvt-unicode \
         vulkan-icd-loader \
         vulkan-intel \
@@ -58,6 +59,7 @@ fi
 if [ -f ~/.xbindkeysrc ] && ! pgrep --euid "${USER}" xbindkeys > /dev/null; then
   xbindkeys
 fi
+picom &
 xscreensaver -no-splash &
 screen_layout &
 dunst &
@@ -85,26 +87,10 @@ EOF
 ```
 
 ```sh
-cat << 'EOF' > /home/${USER}/.xbindkeysrc
-"/home/${USER}/bin/screen_layout"
-    m:0x40 + c:33
-    Mod4 + p
-
-"xscreensaver-command --lock"
-    m:0x50 + c:67
-    Mod2+Mod4 + F1
-
-"maim --select  | xclip -selection clipboard -t image/png"
-    m:0x0 + c:107
-    Print
-EOF
-```
-
-```sh
 cat << 'EOF' > /home/${USER}/bin/screen_layout
 #!/bin/sh
 
-autorandr --change
+autorandr --change --cycle
 
 if [ -f ~/.fehbg ]; then
     . ~/.fehbg
@@ -112,6 +98,59 @@ fi
 EOF
 
 chmod +x /home/${USER}/bin/screen_layout
+```
+
+### Key Bindings
+
+```sh
+cat << 'EOF' > /home/${USER}/.xbindkeysrc
+"/home/${USER}/bin/screen_layout"
+    m:0x40 + c:133
+    Mod4 + Super_L
+
+"xscreensaver-command --lock"
+    m:0x40 + c:75
+    Mod4 + F9
+
+"maim --select | xclip -selection clipboard -t image/png"
+    m:0x0 + c:107
+    Print
+EOF
+```
+
+### Window Transparency
+
+```sh
+mkdir --parents "/home/${USER}/.config"
+cp /etc/xdg/picom.conf "/home/${USER}/.config/picom.conf"
+cat << 'EOF' >> /home/${USER}/.config/picom.conf
+
+opacity-rule = [
+  "80:class_g = 'URxvt' && focused",
+  "70:class_g = 'URxvt' && !focused"
+];
+EOF
+```
+
+### Configure i3
+
+```sh
+HOME="/home/${USER}" i3-config-wizard --modifier win
+sed --in-place '/XF86Audio/s/^/#/'  "/home/${USER}/.config/i3/config"
+sed --in-place '/# Start i3bar/,$d' "/home/${USER}/.config/i3/config"
+cat << 'EOF' >> /home/${USER}/.config/i3/config
+bar {
+        status_command i3status
+        mode hide
+        hidden_state hide
+        modifier Mod4
+}
+
+default_border none
+floating_minimum_size 854 x 480
+popup_during_fullscreen leave_fullscreen
+workspace_auto_back_and_forth yes
+EOF
 ```
 
 ### Manual Configuration

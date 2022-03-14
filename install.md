@@ -275,8 +275,7 @@ Configure GRUB, install the GRUB EFI application, and generate the `grub.cfg` fi
 mv /etc/default/grub /etc/default/grub.default
 
 cat << EOF > /etc/default/grub
-#GRUB_DEFAULT=saved
-#GRUB_SAVEDEFAULT=true
+GRUB_DEFAULT="1>2"
 GRUB_DISTRIBUTOR="Arch"
 GRUB_ENABLE_CRYPTODISK=y
 GRUB_DISABLE_RECOVERY=true
