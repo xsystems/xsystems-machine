@@ -20,6 +20,7 @@ ufw enable
 pacman  --quiet --sync --needed --noconfirm \
         arandr \
         autorandr \
+        bash-completion \
         dmenu \
         dunst \
         feh \
@@ -30,6 +31,7 @@ pacman  --quiet --sync --needed --noconfirm \
         mesa \
         noto-fonts \
         picom \
+        readline \
         rxvt-unicode \
         vulkan-icd-loader \
         vulkan-intel \
@@ -64,7 +66,6 @@ if [ ! -f ~/.config/i3/config ]; then
 fi
 picom &
 xscreensaver -no-splash &
-screen_layout &
 dunst &
 exec i3
 EOF
@@ -86,28 +87,35 @@ EOF
 ```sh
 cat << 'EOF' > /home/${USERNAME}/.inputrc
 set bell-style none
+set editing-mode vi
+set colored-stats On
+set visible-stats On
+set mark-symlinked-directories On
+set colored-completion-prefix On
+set menu-complete-display-prefix On
+"\e[1;5D": backward-word
+"\e[1;5C": forward-word
 EOF
 ```
 
 ```sh
-cat << 'EOF' > /home/${USERNAME}/bin/screen_layout
+mkdir --parents "/home/${USERNAME}/.config/autorandr"
+cat << 'EOF' > /home/${USERNAME}/.config/autorandr/postswitch
 #!/bin/sh
-
-autorandr --change --cycle
 
 if [ -f ~/.fehbg ]; then
     . ~/.fehbg
 fi
 EOF
 
-chmod +x /home/${USERNAME}/bin/screen_layout
+chmod +x /home/${USERNAME}/.config/autorandr/postswitch
 ```
 
 ### Key Bindings
 
 ```sh
 cat << 'EOF' > /home/${USERNAME}/.xbindkeysrc
-"~/bin/screen_layout"
+"autorandr --cycle"
     m:0x40 + c:33
     Mod4 + p
 
@@ -229,7 +237,7 @@ cat << 'EOF' > /etc/acpi/handlers/backlight.sh
 backlight_instance=$(ls /sys/class/backlight | head -n 1)
 backlight=/sys/class/backlight/$backlight_instance
 
-step=$(expr $(< $backlight/max_brightness) / 20)
+step=$(expr $(< $backlight/max_brightness) / 40)
 
 case $2 in
   BRTDN) echo $(($(< $backlight/brightness) - $step)) > $backlight/brightness;;
