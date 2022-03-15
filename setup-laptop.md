@@ -3,7 +3,7 @@
 
 ## Read User Input
 ```sh
-read -p "Username: " USER
+read -p "Username: " USERNAME
 ```
 
 
@@ -43,7 +43,7 @@ pacman  --quiet --sync --needed --noconfirm \
 ```
 
 ```sh
-cat << 'EOF' >> /home/${USER}/.profile
+cat << 'EOF' >> /home/${USERNAME}/.profile
 if [[ ! $DISPLAY && $XDG_VTNR -eq 1 ]]; then
   exec startx > /tmp/x.log 2>&1
 fi
@@ -51,13 +51,16 @@ EOF
 ```
 
 ```sh
-cat << 'EOF' > /home/${USER}/.xinitrc
+cat << 'EOF' > /home/${USERNAME}/.xinitrc
 #!/bin/sh
 if [ -f ~/.Xresources ]; then
   xrdb -merge ~/.Xresources
 fi
-if [ -f ~/.xbindkeysrc ] && ! pgrep --euid "${USER}" xbindkeys > /dev/null; then
+if [ -f ~/.xbindkeysrc ] && ! pgrep --euid "${USERNAME}" xbindkeys > /dev/null; then
   xbindkeys
+fi
+if [ ! -f ~/.config/i3/config ]; then
+  . ~/bin/i3-configure
 fi
 picom &
 xscreensaver -no-splash &
@@ -68,7 +71,7 @@ EOF
 ```
 
 ```sh
-cat << 'EOF' > /home/${USER}/.Xresources
+cat << 'EOF' > /home/${USERNAME}/.Xresources
 *vt100.foreground: gray90
 *vt100.background: black
 *vt100.faceName: xft:Noto Sans Mono:size=14:antialias=true
@@ -81,13 +84,13 @@ EOF
 ```
 
 ```sh
-cat << 'EOF' > /home/${USER}/.inputrc
+cat << 'EOF' > /home/${USERNAME}/.inputrc
 set bell-style none
 EOF
 ```
 
 ```sh
-cat << 'EOF' > /home/${USER}/bin/screen_layout
+cat << 'EOF' > /home/${USERNAME}/bin/screen_layout
 #!/bin/sh
 
 autorandr --change --cycle
@@ -97,16 +100,16 @@ if [ -f ~/.fehbg ]; then
 fi
 EOF
 
-chmod +x /home/${USER}/bin/screen_layout
+chmod +x /home/${USERNAME}/bin/screen_layout
 ```
 
 ### Key Bindings
 
 ```sh
-cat << 'EOF' > /home/${USER}/.xbindkeysrc
-"/home/${USER}/bin/screen_layout"
-    m:0x40 + c:133
-    Mod4 + Super_L
+cat << 'EOF' > /home/${USERNAME}/.xbindkeysrc
+"~/bin/screen_layout"
+    m:0x40 + c:33
+    Mod4 + p
 
 "xscreensaver-command --lock"
     m:0x40 + c:75
@@ -121,9 +124,9 @@ EOF
 ### Window Transparency
 
 ```sh
-mkdir --parents "/home/${USER}/.config"
-cp /etc/xdg/picom.conf "/home/${USER}/.config/picom.conf"
-cat << 'EOF' >> /home/${USER}/.config/picom.conf
+mkdir --parents "/home/${USERNAME}/.config/picom"
+cp /etc/xdg/picom.conf "/home/${USERNAME}/.config/picom/picom.conf"
+cat << 'EOF' >> /home/${USERNAME}/.config/picom/picom.conf
 
 opacity-rule = [
   "80:class_g = 'URxvt' && focused",
@@ -135,10 +138,18 @@ EOF
 ### Configure i3
 
 ```sh
-HOME="/home/${USER}" i3-config-wizard --modifier win
-sed --in-place '/XF86Audio/s/^/#/'  "/home/${USER}/.config/i3/config"
-sed --in-place '/# Start i3bar/,$d' "/home/${USER}/.config/i3/config"
-cat << 'EOF' >> /home/${USER}/.config/i3/config
+cat << 'EOFOUTER' >> /home/${USERNAME}/bin/i3-configure
+if [ -f ~/.config/i3/config ]; then
+  echo "There already exists an i3 configuration!"
+  exit 1
+fi
+
+i3-config-wizard --modifier win
+
+sed --in-place '/XF86Audio/s/^/#/'  ~/.config/i3/config
+sed --in-place '/# Start i3bar/,$d' ~/.config/i3/config
+
+cat << 'EOF' >> ~/.config/i3/config
 bar {
         status_command i3status
         mode hide
@@ -151,6 +162,9 @@ floating_minimum_size 854 x 480
 popup_during_fullscreen leave_fullscreen
 workspace_auto_back_and_forth yes
 EOF
+EOFOUTER
+
+chmod +x /home/${USERNAME}/bin/i3-configure
 ```
 
 ### Manual Configuration
@@ -230,12 +244,12 @@ chmod +x /etc/acpi/handlers/backlight.sh
 ## KeePassXC
 ```sh
 pacman --quiet --sync --needed --noconfirm keepassxc
-sed --in-place '/^xscreensaver/a keepassxc &' "/home/${USER}/.xinitrc"
+sed --in-place '/^xscreensaver/a keepassxc &' "/home/${USERNAME}/.xinitrc"
 ```
 
 
 ## Change User Home Owner and Group
 
 ```sh
-chown --recursive "${USER}:users" "/home/${USER}"
+chown --recursive "${USERNAME}:users" "/home/${USERNAME}"
 ```
