@@ -11,6 +11,8 @@ read -p "Username: " USERNAME
 Setup a firewall:
 ```sh
 pacman --quiet --sync --needed --noconfirm ufw
+systemctl enable ufw
+systemctl start  ufw
 ufw enable
 ```
 
@@ -30,6 +32,7 @@ pacman  --quiet --sync --needed --noconfirm \
         maim \
         mesa \
         noto-fonts \
+        pavucontrol \
         picom \
         readline \
         rxvt-unicode \
@@ -67,6 +70,7 @@ fi
 picom &
 xscreensaver -no-splash &
 dunst &
+screen_layout &
 exec i3
 EOF
 ```
@@ -103,12 +107,22 @@ mkdir --parents "/home/${USERNAME}/.config/autorandr"
 cat << 'EOF' > /home/${USERNAME}/.config/autorandr/postswitch
 #!/bin/sh
 
+screen_layout
+EOF
+
+chmod +x /home/${USERNAME}/.config/autorandr/postswitch
+```
+
+```sh
+cat << 'EOF' > /home/${USERNAME}/bin/screen_layout
+#!/bin/sh
+
 if [ -f ~/.fehbg ]; then
     . ~/.fehbg
 fi
 EOF
 
-chmod +x /home/${USERNAME}/.config/autorandr/postswitch
+chmod +x /home/${USERNAME}/bin/screen_layout
 ```
 
 ### Key Bindings
@@ -127,6 +141,12 @@ cat << 'EOF' > /home/${USERNAME}/.xbindkeysrc
     m:0x0 + c:107
     Print
 EOF
+```
+
+### Dark Theme
+
+```sh
+echo "export GTK_THEME=Adwaita:dark" >> "/home/${USERNAME}/.environment"
 ```
 
 ### Window Transparency
@@ -196,6 +216,17 @@ systemctl start acpid
 
 systemctl enable tlp
 systemctl start tlp
+```
+
+Handle sleep:
+```sh
+mkdir -p /etc/systemd/logind.conf.d
+cat << 'EOF' > /etc/systemd/logind.conf.d/logind.conf
+[Login]
+HandleLidSwitch=suspend-then-hibernate
+HandleLidSwitchExternalPower=suspend-then-hibernate
+HandleLidSwitchDocked=suspend-then-hibernate
+EOF
 ```
 
 Handle volume and mute buttons:

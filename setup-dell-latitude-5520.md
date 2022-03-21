@@ -38,7 +38,7 @@ fi
 ```sh
 pacman --quiet --sync --needed --noconfirm xorg-xinput
 
-cat << 'EOF' >> /home/${USERNAME}/.config/autorandr/postswitch
+cat << 'EOF' >> /home/${USERNAME}/bin/screen_layout
 
 xinput --map-to-output 'ELAN900C:00 04F3:2C6B' eDP-1
 EOF
