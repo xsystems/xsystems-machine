@@ -36,6 +36,7 @@ pacman  --quiet --sync --needed --noconfirm \
         picom \
         readline \
         rxvt-unicode \
+        urxvt-perls \
         vulkan-icd-loader \
         vulkan-intel \
         xbindkeys \
@@ -85,6 +86,21 @@ URxvt.foreground: gray90
 URxvt.background: black
 URxvt.font: xft:Noto Sans Mono:size=14:antialias=true
 URxvt.scrollBar: false
+
+URxvt.perl-ext-common:      default,clipboard,selection-to-clipboard,url-select,keyboard-select,resize-font
+
+URxvt.clipboard.autocopy:   true
+URxvt.keysym.M-c:           perl:clipboard:copy
+URxvt.keysym.M-v:           perl:clipboard:paste
+
+URxvt.url-select.launcher:  xdg-open
+URxvt.url-select.underline: true
+URxvt.keysym.M-u:           perl:url-select:select_next
+URxvt.keysym.M-Escape:      perl:keyboard-select:activate
+URxvt.keysym.M-s:           perl:keyboard-select:search
+
+URxvt.iso14755: false
+URxvt.iso14755_52: false
 EOF
 ```
 

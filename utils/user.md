@@ -67,15 +67,15 @@ user_create() {
     user_create_directory   "${USERNAME}" "/home/${USERNAME}/bin"
     user_create_file        "${USERNAME}" "/home/${USERNAME}/.profile"
 
-    cat <<- EOF >> "/home/${USERNAME}/.profile"
+    cat <<- 'EOF' >> "/home/${USERNAME}/.profile"
 	#!/bin/sh
 
 	if [ -f ~/.environment ]; then
 	    . ~/.environment
 	fi
 
-	if [ -d "\${HOME}/bin" ]; then
-	    PATH="\${HOME}/bin:${PATH}"
+	if [ -d "${HOME}/bin" ]; then
+	    PATH="${HOME}/bin:${PATH}"
 	fi
 	EOF
 
@@ -100,13 +100,13 @@ user_configure_ssh() {
     pacman --quiet --sync --needed --noconfirm openssh
 
     user_create_file "${USERNAME}" "/home/${USERNAME}/.pam_environment"
-    cat <<- EOF >> /home/${USERNAME}/.pam_environment
+    cat <<- 'EOF' >> /home/${USERNAME}/.pam_environment
 	SSH_AGENT_PID  DEFAULT=
 	SSH_AUTH_SOCK  DEFAULT="${XDG_RUNTIME_DIR}/gnupg/S.gpg-agent.ssh"
 	EOF
 
     user_create_file "${USERNAME}"  "/home/${USERNAME}/.bashrc"
-    cat <<- EOF >> /home/${USERNAME}/.bashrc
+    cat <<- 'EOF' >> /home/${USERNAME}/.bashrc
 	export GPG_TTY=$(tty)
 	gpg-connect-agent updatestartuptty /bye > /dev/null
 	EOF
@@ -134,9 +134,9 @@ user_configure_automounting() {
 
     pacman --quiet --sync --needed --noconfirm udiskie
 
-    cat <<- EOF >> /home/${USERNAME}/.profile
+    cat <<- 'EOF' >> /home/${USERNAME}/.profile
 
-	if ! pgrep --euid "\${USER}" udiskie > /dev/null; then
+	if ! pgrep --euid "${USER}" udiskie > /dev/null; then
 	    udiskie --smart-tray --no-file-manager --no-notify &
 	fi
 	EOF
@@ -157,7 +157,7 @@ user_configure_audio() {
 
     user_create_directory   "${USERNAME}" "/home/${USERNAME}/.config/pulse"
     user_create_file        "${USERNAME}" "/home/${USERNAME}/.config/pulse/default.pa"
-    cat <<- EOF >> /home/${USERNAME}/.config/pulse/default.pa
+    cat <<- 'EOF' >> /home/${USERNAME}/.config/pulse/default.pa
 	.include /etc/pulse/default.pa
 	
 	### Automatically switch to newly connected devices
@@ -184,7 +184,7 @@ user_configure_bluetooth() {
     gpasswd --add "${USERNAME}" lp
 
     sed --in-place '/#AutoEnable=false/s/#AutoEnable=false/AutoEnable=true/' /etc/bluetooth/main.conf
-    cat <<- EOF > /etc/bluetooth/audio.conf
+    cat <<- 'EOF' > /etc/bluetooth/audio.conf
 	[General]
 	Enable=Source
 	EOF
